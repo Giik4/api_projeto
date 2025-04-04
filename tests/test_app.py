@@ -1,14 +1,6 @@
 from http import HTTPStatus
 
-import pytest
-from fastapi.testclient import TestClient
-
-from api_project.app import api
-
-
-@pytest.fixture
-def client():
-    return TestClient(api)
+from api_project.schemas import UserPublic
 
 
 def test_read_rood_deve_retornar_ok_e_mensagem_hello_world(client):
@@ -43,19 +35,19 @@ def test_read_users(client):
     response = client.get('/users/')
 
     assert response.status_code == HTTPStatus.OK
-    assert response.json() == {
-        'users': [
-            {
-                'username': 'johndoe',
-                'name': 'John Doe',
-                'email': 'John@example.com',
-                'id': 1,
-            }
-        ]
-    }
+    assert response.json() == {'users': []}
 
 
-def test_update_user(client):
+def test_read_users_with_user(client, user):
+    user_schema = UserPublic.model_validate(user).model_dump()
+
+    response = client.get('/users/')
+
+    assert response.status_code == HTTPStatus.OK
+    assert response.json() == {'users': [user_schema]}
+
+
+def test_update_user(client, user):
     response = client.put(
         '/users/1',
         json={
@@ -75,7 +67,7 @@ def test_update_user(client):
     }
 
 
-def test_delete_user(client):
+def test_delete_user(client, user):
     response = client.delete('/users/1')
 
     assert response.json() == {'message': 'User deleted'}
